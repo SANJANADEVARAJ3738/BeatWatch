@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cardiac Arrhythmia Detection</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;transition:background-image 0.5s ease-in-out;}
+body::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:0;}
+body.auth-bg{background-image:url("../images/heartryythm.jpeg");}
+body.quote-bg{background-image:url("../images/heartryythm2.jpeg");}
+body.dashboard-bg{background-image:url("../images/heartryythm3.jpeg");}
+body.upload-bg{background-image:url("../images/heartryythm5.jpg");}
+body.result-bg{background-image:url("../images/heartryythm.4.jpg");}
+
+/* Containers */
+.container,.quote-container,.upload-container,.dashboard-container,.result-container{position:relative;z-index:1;width:400px;padding:20px;border-radius:15px;background:rgba(255,255,255,.2);backdrop-filter:blur(15px);box-shadow:0 8px 25px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.3);display:none;flex-direction:column;align-items:center;}
+.active{display:flex;}
+.btn-box{display:flex;width:100%;margin-bottom:10px;}
+.btn-box button{flex:1;padding:12px;border:none;background:rgba(255,255,255,.2);color:#fff;font-size:18px;cursor:pointer;}
+.btn-box button.active{background:rgba(37,117,252,.8);}
+form{display:none;width:100%;flex-direction:column;}
+form.active{display:flex;}
+h2{color:#fff;margin-bottom:15px;text-align:center;}
+input{margin-bottom:15px;padding:12px;border-radius:8px;border:none;background:rgba(255,255,255,.3);color:#fff;}
+input::placeholder{color:#eee;}
+button.submit{padding:12px;border:none;border-radius:8px;background:#2575fc;color:#fff;font-size:16px;cursor:pointer;margin-top:10px;}
+
+/* Back arrow */
+.back-arrow {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(0,0,0,0.3);
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  transition: background 0.3s;
+}
+.back-arrow:hover { background: rgba(0,0,0,0.6); }
+.logout-btn {
+  margin-top: 10px;
+  background: #d32f2f; /* Change this to your desired color */
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.logout-btn:hover {
+  background: #b71c1c; /* Darker shade on hover */
+}
+
+.upload-container,.result-container,.dashboard-container{background:#fff;color:#000;width:90%;max-width:450px;text-align:center;}
+.quote-container{background:rgba(255,255,255,0.2);color:#000;width:90%;max-width:450px;text-align:center;}
+.upload-box{border:2px dashed #1976d2;padding:30px;border-radius:12px;background:#e3f2fd;cursor:pointer;}
+.preview{display:none;margin-top:20px;}
+.preview img{max-width:300px;border-radius:10px;}
+.status{margin-top:15px;font-weight:bold;}
+.dashboard-container{width:90%;max-width:1000px;padding:25px;border-radius:20px;background:rgba(255,255,255,0.2);backdrop-filter:blur(15px);color:#fff;}
+.dashboard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
+.card{background:rgba(255,255,255,0.25);padding:20px;border-radius:15px;text-align:center;cursor:pointer;}
+.upload-card{border:2px dashed #fff;}
+.result-container img{width:100%;max-width:280px;border-radius:10px;margin:15px 0;}
+</style>
+</head>
+<body class="auth-bg">
+
+<!-- LOGIN / REGISTER -->
+<div class="container active" id="authContainer">
+  <div class="btn-box">
+    <button id="loginBtn" class="active">Login</button>
+    <button id="registerBtn">Register</button>
+  </div>
+
+  <form id="loginForm" class="active">
+    <h2>Login</h2>
+    <input id="loginEmail" type="email" placeholder="Email" required>
+    <input id="loginPass" type="password" placeholder="Password" required>
+    <button type="button" class="submit" onclick="loginUser()">Login</button>
+    <p id="loginError"></p>
+  </form>
+
+  <form id="registerForm">
+    <h2>Register</h2>
+    <input id="regName" placeholder="Full Name">
+    <input id="regEmail" type="email" placeholder="Email">
+    <input id="regPass" type="password" placeholder="Password">
+    <input id="regConfirm" type="password" placeholder="Confirm Password">
+    <button type="button" class="submit" onclick="registerUser()">Register</button>
+    <p id="registerMsg"></p>
+  </form>
+</div>
+
+<!-- QUOTE PAGE -->
+<div class="quote-container" id="quotePage">
+  <button class="back-arrow" onclick="returnToLogin()">←</button>
+  <h2>Welcome 💖</h2>
+  <p id="quoteText"></p>
+  <button class="submit" onclick="goToDashboard()">Continue</button>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard-container" id="dashboardPage">
+  <button class="back-arrow" onclick="returnToQuote()">←</button>
+  <div class="dashboard-header">
+    <h1>🫀 Patient Dashboard</h1>
+    <!-- Logout removed -->
+  </div>
+  <div class="cards">
+    <div class="card">
+      <h3>Total ECG Uploaded</h3>
+      <p id="totalUploads">0</p>
+    </div>
+    <div class="card">
+      <h3>Last Result</h3>
+      <p id="lastResult">—</p>
+    </div>
+    <div class="card upload-card" onclick="goToUploadPage()">
+      <h3>➕ Upload ECG</h3>
+      <p>Click to analyze</p>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD PAGE -->
+<div class="upload-container" id="uploadPage">
+  <button class="back-arrow" onclick="returnToDashboard()">←</button>
+  <h1>🫀 Cardiac Arrhythmia Detection</h1>
+  <p>Upload ECG Image</p>
+  <label class="upload-box">
+    Click to Upload ECG
+    <input type="file" id="ecgInput" accept=".png,.jpg,.jpeg" hidden>
+  </label>
+  <div class="preview" id="previewBox">
+    <img id="previewImg">
+  </div>
+  <button class="submit" onclick="uploadECG()">Submit</button>
+  <div class="status" id="statusText"></div>
+</div>
+
+<!-- RESULT PAGE -->
+<div class="result-container" id="resultPage">
+  <button class="back-arrow" onclick="backToUploadPage()">←</button>
+  <h1>🧠 ECG Prediction Result</h1>
+  <div class="preview">
+    <img id="resultImg">
+  </div>
+  <h2 id="predictionText"></h2>
+  <p id="resultMessage"></p>
+  <!-- Bottom back button removed -->
+  <button class="logout-btn" onclick="logoutUser()">🚪 Logout</button>
+</div>
+
+<script>
+function setBg(cls){ document.body.className = cls; }
+loginBtn.onclick=()=>{loginBtn.classList.add("active");registerBtn.classList.remove("active");loginForm.classList.add("active");registerForm.classList.remove("active");}
+registerBtn.onclick=()=>{registerBtn.classList.add("active");loginBtn.classList.remove("active");registerForm.classList.add("active");loginForm.classList.remove("active");}
+
+// Register & Login
+function registerUser(){
+  if(regPass.value!==regConfirm.value){registerMsg.innerText="Password mismatch";return;}
+  localStorage.setItem(regEmail.value,JSON.stringify({name:regName.value,pass:regPass.value, ecgs: []}));
+  registerMsg.innerText="Registered successfully!";
+}
+
+function loginUser(){
+  const user=JSON.parse(localStorage.getItem(loginEmail.value));
+  if(!user||user.pass!==loginPass.value){loginError.innerText="Invalid login";return;}
+  authContainer.style.display="none";
+  quotePage.style.display="flex";
+  setBg("quote-bg");
+  showQuote();
+}
+
+// Quotes
+function showQuote(){
+  const quotes=["Healthy heart, happy life ❤️","Every heartbeat matters 💓","Care for your heart 🫀"];
+  quoteText.innerText=quotes[Math.floor(Math.random()*quotes.length)];
+}
+
+// Dashboard & Data
+function getUserData(email){
+  const data = JSON.parse(localStorage.getItem(email));
+  if(!data.ecgs) data.ecgs = [];
+  return data;
+}
+
+function saveUserData(email, data){
+  localStorage.setItem(email, JSON.stringify(data));
+}
+
+function updateDashboard(){
+  const user = getUserData(loginEmail.value);
+  totalUploads.innerText = user.ecgs.length;
+  if(user.ecgs.length > 0){
+    const last = user.ecgs[user.ecgs.length-1];
+    lastResult.innerText = last.prediction === "normal" ? "Normal 💚" :
+                           last.prediction === "invalid" ? "Invalid ❌" :
+                           "Abnormal ⚠️";
+  } else {
+    lastResult.innerText = "—";
+  }
+}
+
+function goToDashboard(){
+  quotePage.style.display="none";
+  dashboardPage.style.display="flex";
+  setBg("dashboard-bg");
+  updateDashboard();
+}
+function goToUploadPage(){dashboardPage.style.display="none";uploadPage.style.display="flex";setBg("upload-bg");}
+function backToUploadPage(){resultPage.style.display="none";uploadPage.style.display="flex";setBg("upload-bg");}
+function returnToLogin(){quotePage.style.display="none";authContainer.style.display="flex";setBg("auth-bg");}
+function returnToQuote(){dashboardPage.style.display="none";quotePage.style.display="flex";setBg("quote-bg");}
+function returnToDashboard(){uploadPage.style.display="none";dashboardPage.style.display="flex";setBg("dashboard-bg"); updateDashboard();}
+function logoutUser(){authContainer.style.display="flex";dashboardPage.style.display="none";uploadPage.style.display="none";resultPage.style.display="none";setBg("auth-bg");}
+
+// ECG Preview
+document.getElementById("ecgInput").addEventListener("change",function(){
+  const r=new FileReader();
+  r.onload=e=>{previewImg.src=e.target.result;previewBox.style.display="block";}
+  r.readAsDataURL(this.files[0]);
+});
+
+// Upload ECG & connect CNN
+async function uploadECG(){
+  if(!ecgInput.files[0]){statusText.innerText="Please upload ECG image!";return;}
+  statusText.innerText="Processing...";
+
+  const formData = new FormData();
+  formData.append('ecg', ecgInput.files[0]);
+
+  try{
+    const response = await fetch('http://localhost:5000/predict',{
+      method:'POST',
+      body: formData
+    });
+    if(!response.ok) throw new Error("Server error");
+
+    const data = await response.json();
+
+    // Show uploaded image
+    resultImg.src = URL.createObjectURL(ecgInput.files[0]);
+    uploadPage.style.display="none";
+    resultPage.style.display="flex";
+    setBg("result-bg");
+
+    // Display CNN prediction
+    if(data.prediction === "invalid"){
+      predictionText.innerText = "❌ Invalid Image";
+      resultMessage.innerText = "Please upload a valid ECG image";
+    } else if(data.prediction === "normal"){
+      predictionText.innerText = "Normal Heart Rhythm 💚";
+      resultMessage.innerText = "ECG looks normal.";
+    } else {
+      predictionText.innerText = "Abnormal Heart Rhythm ⚠️";
+      resultMessage.innerText = "Please consult a cardiologist.";
+    }
+
+    // Save result for dashboard
+    const user = getUserData(loginEmail.value);
+    user.ecgs.push({filename: ecgInput.files[0].name, prediction: data.prediction});
+    saveUserData(loginEmail.value, user);
+
+    statusText.innerText="";
+    updateDashboard();
+
+  } catch(err){
+    statusText.innerText="Error processing ECG.";
+    console.error(err);
+  }
+}
+</script>
+</body>
+</html>
